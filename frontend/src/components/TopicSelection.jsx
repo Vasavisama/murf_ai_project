@@ -39,7 +39,8 @@ export default function TopicSelection({ setSession }) {
         topic: topic.trim(),
         interviewerType,
         language,
-        firstQuestion: res.data.generatedQuestion || res.data.question
+        firstQuestion: res.data.generatedQuestion || res.data.question,
+        detectedSkills: Array.isArray(res.data.detectedSkills) ? res.data.detectedSkills : []
       });
 
       navigate('/interview');

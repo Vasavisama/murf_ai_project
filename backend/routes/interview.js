@@ -23,9 +23,13 @@ async function callGroq(prompt) {
   const payload = {
     model: "llama-3.3-70b-versatile", // High power model for logic
     messages: [
+      {
+        role: "system",
+        content: "You are a strict, highly structured mock interview engine. You must always respond ONLY with valid JSON that exactly matches the requested schema. Do not add explanations, markdown, or extra keys."
+      },
       { role: "user", content: prompt }
     ],
-    temperature: 0.7,
+    temperature: 0.2,
     response_format: { type: "json_object" }
   };
 
@@ -314,7 +318,10 @@ Respond ONLY in this strict JSON format:
         suggestions: ["Fix API key", "Test with active quota"]
       };
     }
-    res.json(data);
+    res.json({
+      ...data,
+      detectedSkills: session.detectedSkills || []
+    });
   } catch (error) {
     console.error('Error generating summary:', error);
     res.status(500).json({ error: 'Failed to generate summary' });

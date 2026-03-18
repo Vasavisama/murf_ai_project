@@ -61,6 +61,25 @@ export default function Summary({ session }) {
         <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Total Score</div>
       </div>
 
+      {Array.isArray(summary.detectedSkills) && summary.detectedSkills.length > 0 && (
+        <div style={{ marginBottom: '2rem', padding: '1rem 1.25rem', borderRadius: '10px', backgroundColor: 'rgba(59, 130, 246, 0.06)', border: '1px solid rgba(59, 130, 246, 0.25)' }}>
+          <h3 style={{ fontSize: '0.95rem', marginBottom: '0.5rem', color: 'var(--accent-color)' }}>
+            Skills detected from your resume / answers
+          </h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {summary.detectedSkills.map((skill, idx) => (
+              <span
+                key={idx}
+                className="badge"
+                style={{ fontSize: '0.85rem', padding: '0.25rem 0.75rem', borderRadius: '999px', backgroundColor: 'rgba(59, 130, 246, 0.12)' }}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
         <div>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--success)', marginBottom: '1rem' }}>

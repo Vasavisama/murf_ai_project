@@ -13,6 +13,10 @@ function App() {
   const [session, setSession] = useState({
     id: null,
     topic: null,
+    interviewerType: null,
+    language: 'English',
+    firstQuestion: '',
+    detectedSkills: []
   });
 
   return (

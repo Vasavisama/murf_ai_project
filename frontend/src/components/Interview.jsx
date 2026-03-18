@@ -224,6 +224,12 @@ export default function Interview({ session }) {
         <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           Interviewer: <span style={{ color: 'var(--accent-color)' }}>{session.interviewerType || 'Technical Interviewer'}</span>
         </h2>
+        {Array.isArray(session.detectedSkills) && session.detectedSkills.length > 0 && (
+          <div style={{ marginBottom: '0.75rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+            <span style={{ fontWeight: 500, marginRight: '0.25rem' }}>Skills from your resume:</span>
+            {session.detectedSkills.join(', ')}
+          </div>
+        )}
         <p style={{ fontSize: '1.125rem', color: 'var(--text-primary)' }}>{question}</p>
       </div>
 
