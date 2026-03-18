@@ -190,12 +190,34 @@ export default function Interview({ session }) {
           Topic: <strong style={{ color: 'var(--text-primary)' }}>{session.topic}</strong>
         </span>
         
-        {audioUrl && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-color)' }}>
-            <Volume2 size={18} />
-            <span style={{ fontSize: '0.875rem' }}>Playing voice...</span>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {audioUrl && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-color)' }}>
+              <Volume2 size={18} />
+              <span style={{ fontSize: '0.875rem' }}>Playing voice...</span>
+            </div>
+          )}
+          <button 
+            type="button"
+            onClick={() => {
+              if (window.confirm('Are you sure you want to end the interview early?')) {
+                navigate('/summary');
+              }
+            }}
+            style={{ 
+              backgroundColor: 'transparent', 
+              color: 'var(--error, #ef4444)', 
+              border: '1px solid var(--error, #ef4444)',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: 500
+            }}
+          >
+            End Interview
+          </button>
+        </div>
       </div>
 
       <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', borderLeft: '4px solid var(--accent-color)' }}>

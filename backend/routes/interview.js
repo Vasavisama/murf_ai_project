@@ -185,6 +185,13 @@ Analyze the response carefully focusing on ${questionFocus}. Generate a natural 
 - Formulate your question in the tone of a ${roleDescription}.
 - Sound natural and professional like a real human interviewer.
 
+CRITICAL SCORING INSTRUCTION: You must act as a strict technical interviewer and grade the candidate's answer accurately on a scale of 1 to 10. 
+- Score 1-2: The answer is empty, punctuation-only (like ".."), nonsense, or a complete failure to answer. You MUST state the answer is invalid or completely wrong.
+- Score 3-4: The answer is completely wrong or fundamentally misunderstands the concept.
+- Score 5-7: The answer is partially correct but lacks depth or misses key technical details.
+- Score 8-10: The answer is excellent, highly accurate, and detailed.
+If the candidate's answer is just symbols, very short, or irrelevant, you MUST give a score of 1 or 2 and explicitly call out that the answer was invalid. Do not assume any correctness.
+
 `;
     if (isVoiceAnswer) {
       prompt += `The user answered using Voice matching. Their total speaking duration was ${answerDuration || 0} seconds. 
@@ -198,7 +205,7 @@ Generate "confidenceFeedback" addressing their speaking style (e.g., "Try reduci
     prompt += `Evaluate the answer and provide ONLY this JSON format:
 {
   "feedback": "Technical evaluation (1-2 sentences)",
-  "score": 8,
+  "score": 4, // Integer from 1 to 10 assessing the answer strictly
   "followUpQuestion": "The natural follow-up question (null if question 5)",
   "isInterviewOver": false,
   "voiceEnabled": true,
@@ -250,37 +257,59 @@ router.get('/summary/:sessionId', async (req, res) => {
     }
 
     // Combine history for summary prompt
+    let questionsAnswered = 0;
     const historyText = session.history.map(h => {
       if (h.role === 'interviewer') return `Q: ${h.content}`;
-      if (h.role === 'candidate') return `A: ${h.content}`;
+      if (h.role === 'candidate') {
+        questionsAnswered++;
+        return `A: ${h.content}`;
+      }
       if (h.role === 'evaluation') return `Score: ${h.content.score}/10`;
       return '';
     }).join('\n');
 
-    const prompt = `You are an ${session.interviewerType || 'expert technical interviewer'}. The interview is now complete.
-Review the following interview history for the role/topic: "${session.topic}"
+    if (questionsAnswered === 0) {
+      return res.json({
+        totalScore: 0,
+        maxPossibleScore: 0,
+        strengths: ["No questions were answered."],
+        weakAreas: ["The interview was ended before any answers were submitted."],
+        suggestions: ["Take your time to answer at least one question next time!"]
+      });
+    }
 
-CRITICAL INSTRUCTION: You MUST generate the summary insights, strengths, weakAreas, and suggestions STRICTLY in this language: ${session.language}.
+    const maxScore = questionsAnswered * 10;
 
+    const prompt = `You are an ${session.interviewerType || 'expert technical interviewer'}. The interview was ended early or naturally completed.
+Review the following interview transcript for the role/topic: "${session.topic}". The candidate answered ${questionsAnswered} questions.
+
+CRITICAL INSTRUCTION 1: You MUST generate the summary insights, strengths, weakAreas, and suggestions STRICTLY in this language: ${session.language}.
+CRITICAL INSTRUCTION 2: Base your feedback EXCLUSIVELY on the actual candidate answers provided below. DO NOT hallucinate or invent topics, coding scenarios, or feedback about things that were not explicitly discussed in the transcript! If the transcript is short, only give feedback on what exists.
+
+Transcript:
 ${historyText}
 
-Based on the candidate's answers, provide an overall summary.
+Based on the candidate's actual answers, provide an overall summary.
 Respond ONLY in this strict JSON format:
 {
-  "totalScore": 42, // Total sum of all their scores (max 50)
-  "strengths": ["string", "string"], // 2-3 key strengths
-  "weakAreas": ["string", "string"], // 2-3 areas that need work
-  "suggestions": ["string", "string"] // 2-3 actionable tips
+  "totalScore": 42, // Total sum of their actual scores matching the evaluation scores (max ${maxScore})
+  "maxPossibleScore": ${maxScore},
+  "strengths": ["string", "string"], // 1-3 key strengths based ONLY on the transcript
+  "weakAreas": ["string", "string"], // 1-3 areas that need work based ONLY on the transcript
+  "suggestions": ["string", "string"] // 1-3 actionable tips based ONLY on the transcript
 }`;
 
     let data;
     try {
       data = await callGroq(prompt);
+      // Failsafe format
+      if (data.maxPossibleScore === undefined) data.maxPossibleScore = maxScore;
     } catch (apiError) {
       console.error('Groq API failed, using fallback mock for /summary:', apiError.response?.data || apiError.message);
       data = {
-        totalScore: 40,
-        strengths: ["Completed the mock interview successfully", "Good mock answers"],
+        totalScore: questionsAnswered * 8, // mock decent score
+        maxPossibleScore: maxScore,
+        strengths: ["Completed the portion of the mock interview"],
         weakAreas: ["API Key needs to be upgraded for real evaluations"],
         suggestions: ["Fix API key", "Test with active quota"]
       };

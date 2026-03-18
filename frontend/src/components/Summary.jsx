@@ -56,7 +56,7 @@ export default function Summary({ session }) {
         
         <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '0.5rem' }}>
           <span style={{ fontSize: '4rem', fontWeight: 800, color: 'var(--accent-color)', lineHeight: 1 }}>{summary.totalScore}</span>
-          <span style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>/ 50</span>
+          <span style={{ fontSize: '1.5rem', color: 'var(--text-secondary)' }}>/ {summary.maxPossibleScore !== undefined ? summary.maxPossibleScore : 50}</span>
         </div>
         <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Total Score</div>
       </div>
